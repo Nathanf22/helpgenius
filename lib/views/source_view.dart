@@ -240,8 +240,8 @@ class _SourceViewState extends State<SourceView> {
                     fileExtension: file.fileExtension,
                     download: (){},
                     delete: (){
-                      setState(() {
-                        String result = viewModel.removeFile(file.fileName);
+                      setState(() async{
+                        String result = await viewModel.removeFile("${file.fileName}.${file.fileExtension}");
                         if (result != 'success'){
                         showErrorSnackBar(context, result);
                         }

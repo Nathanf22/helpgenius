@@ -4,6 +4,8 @@ import 'package:helpgenius/model/data.dart';
 import 'package:helpgenius/model/file_model.dart';
 import 'package:helpgenius/views/components/file_item.dart';
 
+import '../model/global_params.dart';
+
 List<FileItem> parseFiles(String jsonStr) {
   final parsed = json.decode(jsonStr).cast<Map<String, dynamic>>();
   return parsed.map<FileItem>((json) {
@@ -37,16 +39,58 @@ List<FileItem> parseFiles(String jsonStr) {
 
 
 Future<List<FileItem>> loadFilesData() async{
-  String baseUrl = 'http://localhost:8000';
   String accessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJqb2huZG9lIiwiZXhwIjoxNjk2MzU5MTE0fQ.S4TTi78X1ZQ-VyDYdRzT5Ybm14-MV59wxM7qn0MVNyc";
   Map<String, String> headers = {
       "Authorization": "Bearer $accessToken"
   };
-  List<String>remoteFiles = await FileModel(baseUrl: baseUrl, headers: headers).getFilesList();
+  List<dynamic> remoteFiles = await FileModel(baseUrl: baseUrl, headers: headers, agentID: 'test_agent').getFilesList();
   print('loading...');
+  filesModel = transformFileList(remoteFiles);
   String jsonString = json.encode(filesModel);
   final List<FileItem> files = parseFiles(jsonString);
   print("files: $files");
   return files;
 }
 
+Future<bool> deleteFile(fileName) async{
+  String accessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJqb2huZG9lIiwiZXhwIjoxNjk2MzU5MTE0fQ.S4TTi78X1ZQ-VyDYdRzT5Ybm14-MV59wxM7qn0MVNyc";
+  Map<String, String> headers = {
+      "Authorization": "Bearer $accessToken"
+  };
+  return await FileModel(baseUrl: baseUrl, headers: headers, agentID: 'test_agent').deleteFile(fileName);
+}
+
+List<Map<String, String>> transformFileList(List<dynamic> inputFiles) {
+  List<Map<String, String>> filesModel = [];
+
+  for (int i = 0; i < inputFiles.length; i++) {
+    String fileName = inputFiles[i]['name'].toString();
+    String fileSize = calculateFileSize(inputFiles[i]['size']);
+    String fileExtension = inputFiles[i]['format'].toString();
+
+    Map<String, String> fileModel = {
+      "fileName": fileName,
+      "fileSize": fileSize,
+      "fileExtension": fileExtension,
+    };
+
+    filesModel.add(fileModel);
+  }
+
+  return filesModel;
+}
+
+String calculateFileSize(int sizeInBytes) {
+  const int kbSize = 1024;
+  const int mbSize = kbSize * 1024;
+
+  if (sizeInBytes >= mbSize) {
+    double sizeInMB = sizeInBytes / mbSize;
+    return "${sizeInMB.toStringAsFixed(1)} MB";
+  } else if (sizeInBytes >= kbSize) {
+    double sizeInKB = sizeInBytes / kbSize;
+    return "${sizeInKB.toStringAsFixed(1)} KB";
+  } else {
+    return "$sizeInBytes Bytes";
+  }
+}

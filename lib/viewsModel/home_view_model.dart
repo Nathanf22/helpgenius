@@ -33,10 +33,16 @@ class HomeViewModel {
   // }
 
   // Méthode pour supprimer un fichier de la liste
-  String removeFile(name) {
+  Future<String> removeFile(name) async {
     try {
-      filesModel.removeWhere((file) => file["fileName"] == name);
-      return 'success';
+      if(await deleteFile(name)){
+        return 'success';
+      }
+      else{
+        return 'error';
+      }
+      // filesModel.removeWhere((file) => file["fileName"] == name);
+      // return 'success';
     }
     catch(e){
        return 'error: $e';

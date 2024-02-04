@@ -5,8 +5,9 @@ import 'package:requests/requests.dart';
 class FileModel {
   final String baseUrl;
   final Map<String, String> headers;
+  final String agentID;
 
-  FileModel({required this.baseUrl, required this.headers});
+  FileModel({required this.baseUrl, required this.headers, required this.agentID});
 
   // Méthode pour uploader un fichier sur le serveur
   // Future<void> uploadFile(String filePath) async {
@@ -28,21 +29,21 @@ class FileModel {
   // }
 
   // Méthode pour récupérer la liste des fichiers depuis le serveur
-  Future<List<String>> getFilesList() async{
+  Future<List<dynamic>> getFilesList() async{
     try {
       print('try to get files');
       dynamic response = await Requests.get(
-        'http://localhost:8000/files/', // Remplacez par l'URL de récupération de la liste des fichiers de votre API
+        "$baseUrl/agents/$agentID/file_list", // Remplacez par l'URL de récupération de la liste des fichiers de votre API
         // headers: headers,
       );
       print('status code: ${response.statusCode}');
       if (response.statusCode == 200) {
-        dynamic jsonResponse = response.json();
+        Map<String, dynamic> jsonResponse = jsonDecode(response.body);
         print('body: $jsonResponse');
-        final fileList = jsonResponse.get('files');
+        List<dynamic> fileList = jsonResponse['files'];
         print('fileList: $fileList');
          print('request ended');
-        return fileList.cast<String>();
+        return fileList;
       } else {
         print('Échec de la récupération de la liste des fichiers. Code de réponse : ${response.statusCode}');
         print('request ended 1');
@@ -52,6 +53,40 @@ class FileModel {
       print('Erreur lors de la récupération de la liste des fichiers : $e');
       return [];
     }
+  }
+
+  // Future<bool> uploadFile(filename, file) async{
+  //   try{
+  //     dynamic response = Requests.post("/agents/$agentID/upload", files={"file": (test_file.filename, test_file.file)});
+  //   }
+  //   catch (e){
+  //     return false;
+  //   }
+  // }
+
+  Future<bool> deleteFile(fileName) async{
+    try {
+       dynamic response = await Requests.delete(
+        "$baseUrl/agents/$agentID/file/$fileName", 
+        // headers: headers,
+      );
+      if(response.statusCode == 200){
+        return true;
+      }
+      else{
+        print("StatusCode: ${response.statusCode}");
+        print("message: ${jsonDecode(response.body)['message']}");
+        return false;
+      }
+
+    }
+
+    catch (e){
+      print('Erreur lors de la superssion: $e');
+      return false;
+    }
+   
+
   }
 
 //   // Méthode pour récupérer les informations sur un fichier depuis le serveur
