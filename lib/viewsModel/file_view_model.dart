@@ -38,12 +38,12 @@ List<FileItem> parseFiles(String jsonStr) {
 // ]""";
 
 
-Future<List<FileItem>> loadFilesData() async{
+Future<List<FileItem>> loadFilesData(int agentID) async{
   String accessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJqb2huZG9lIiwiZXhwIjoxNjk2MzU5MTE0fQ.S4TTi78X1ZQ-VyDYdRzT5Ybm14-MV59wxM7qn0MVNyc";
   Map<String, String> headers = {
       "Authorization": "Bearer $accessToken"
   };
-  List<dynamic> remoteFiles = await FileModel(baseUrl: baseUrl, headers: headers, agentID: 'test_agent').getFilesList();
+  List<dynamic> remoteFiles = await FileModel(baseUrl: baseUrl, headers: headers, agentID: agentID).getFilesList();
   print('loading...');
   filesModel = transformFileList(remoteFiles);
   String jsonString = json.encode(filesModel);
@@ -52,13 +52,21 @@ Future<List<FileItem>> loadFilesData() async{
   return files;
 }
 
-Future<bool> deleteFile(fileName) async{
+Future<bool> deleteFile(fileName, agentID) async{
   String accessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJqb2huZG9lIiwiZXhwIjoxNjk2MzU5MTE0fQ.S4TTi78X1ZQ-VyDYdRzT5Ybm14-MV59wxM7qn0MVNyc";
   Map<String, String> headers = {
       "Authorization": "Bearer $accessToken"
   };
-  return await FileModel(baseUrl: baseUrl, headers: headers, agentID: 'test_agent').deleteFile(fileName);
+  return await FileModel(baseUrl: baseUrl, headers: headers, agentID: agentID).deleteFile(fileName);
 }
+
+Future<bool> uploadFile(filename, file, agentID) async{
+   String accessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJqb2huZG9lIiwiZXhwIjoxNjk2MzU5MTE0fQ.S4TTi78X1ZQ-VyDYdRzT5Ybm14-MV59wxM7qn0MVNyc";
+  Map<String, String> headers = {
+      "Authorization": "Bearer $accessToken"
+  };
+   return await FileModel(baseUrl: baseUrl, headers: headers, agentID: agentID).uploadFile(filename, file);
+} 
 
 List<Map<String, String>> transformFileList(List<dynamic> inputFiles) {
   List<Map<String, String>> filesModel = [];

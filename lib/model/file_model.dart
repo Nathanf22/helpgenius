@@ -1,11 +1,12 @@
 import 'dart:convert';
 
 import 'package:requests/requests.dart';
+import 'package:http/http.dart' as http;
 
 class FileModel {
   final String baseUrl;
   final Map<String, String> headers;
-  final String agentID;
+  final int agentID;
 
   FileModel({required this.baseUrl, required this.headers, required this.agentID});
 
@@ -55,14 +56,26 @@ class FileModel {
     }
   }
 
-  // Future<bool> uploadFile(filename, file) async{
-  //   try{
-  //     dynamic response = Requests.post("/agents/$agentID/upload", files={"file": (test_file.filename, test_file.file)});
-  //   }
-  //   catch (e){
-  //     return false;
-  //   }
-  // }
+  Future<bool> uploadFile(filename, file) async{
+   final url = Uri.parse("$baseUrl/agents/$agentID/upload");
+
+  var request = http.MultipartRequest('POST', url)
+    ..files.add( http.MultipartFile.fromBytes('file', file, filename: filename));
+
+  try {
+    final response = await request.send();
+    if (response.statusCode == 200) {
+      print('Fichier téléchargé avec succès.');
+      return true;      
+    } else {
+      print('Échec du téléchargement du fichier. Statut: ${response.statusCode}');
+      return false;
+    }
+  } catch (error) {
+    print('Erreur lors de l\'envoi du fichier: $error');
+    return false;
+  }
+  }
 
   Future<bool> deleteFile(fileName) async{
     try {

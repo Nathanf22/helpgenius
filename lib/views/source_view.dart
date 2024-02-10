@@ -24,13 +24,21 @@ class _SourceViewState extends State<SourceView> {
   bool _dragging = false;
   final HomeViewModel viewModel = HomeViewModel();
   List<FileItem> files = [];
-  String? selectedAgent = 'Agent 1';
+  List<String> agentsNames = [];
+  String? selectedAgent = '' ;
   String? selectedModel = 'Model 1';
+  int agentID = -1;
+  
 
   void _onAgentDropdownChanged(String? newValue) {
-    setState(() {
-      selectedAgent = newValue;
-    });
+    selectedAgent = newValue;
+    agentID = selectedAgent=='' ? -1 : int.parse(selectedAgent!.split(":")[0]);
+    viewModel.getFiles(agentID).then((f) {
+        files = f;
+        setState(() {
+          
+        });
+      });
   }
 
   void _onModelDropdownChanged(String? newValue) {
@@ -44,10 +52,19 @@ class _SourceViewState extends State<SourceView> {
   
   @override
   void initState() {
-    viewModel.getFiles().then((f) {
-      files = f;
-      setState(() {
-        
+    
+    viewModel.getAgentsNames().then((names){
+      print("finished getAgentsNames");
+      agentsNames = names;
+      print(names);
+      selectedAgent = agentsNames[0];
+      agentID = selectedAgent=='' ? -1 : int.parse(selectedAgent!.split(":")[0]);
+      print("agent id: $agentID");
+      viewModel.getFiles(agentID).then((f) {
+        files = f;
+        setState(() {
+          
+        });
       });
     });
     super.initState();
@@ -75,7 +92,7 @@ class _SourceViewState extends State<SourceView> {
                 fontWeight: FontWeight.normal
                 ),),
             ),
-            Container(
+            agentsNames.isNotEmpty ? Container(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: DropdownButton<String>(
               // underline: Container(
@@ -91,7 +108,7 @@ class _SourceViewState extends State<SourceView> {
               dropdownColor: const Color.fromARGB(255, 0, 0, 36),
               value: selectedAgent,
               onChanged: _onAgentDropdownChanged,
-              items: <String>['Agent 1', 'Agent 2', 'Agent 3', 'Agent 4']
+              items: agentsNames
                   .map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
@@ -99,7 +116,7 @@ class _SourceViewState extends State<SourceView> {
                 );
               }).toList(),
                         ),
-            ),
+            ): const SizedBox.shrink(),
             const SizedBox(
               height: 20,
             ),
@@ -180,10 +197,13 @@ class _SourceViewState extends State<SourceView> {
                                 onPressed: () async{
                                     FilePickerResult? picked = await FilePicker.platform.pickFiles();
                                     if (picked != null) {
-                                     picked.files.map((file) => viewModel.addFile(name: file.name, bytes: file.bytes, size: file.size, extension: file.extension)).toList();
-                                     files = await viewModel.getFiles();
+                                      agentID = selectedAgent=='' ? -1 : int.parse(selectedAgent!.split(":")[0]);
+                                      print("agent ID: $agentID");
+                                      // picked.files.map((e) => await viewModel.uploadFile(filename: filename, file: file))
+                                     await Future.wait(picked.files.map((file) async => await viewModel.addFile(name: file.name, bytes: file.bytes, size: file.size, extension: file.extension, agentID:agentID)).toList());
+                                     files = await viewModel.getFiles(agentID);
                                      setState(() {
-      
+                                      
                                      });
                                       // print(picked.files.first.name);
                                       // viewModel.addFiles(_files);
@@ -222,7 +242,7 @@ class _SourceViewState extends State<SourceView> {
               mainAxisSize: MainAxisSize.min,
               // height: 200,
               children: [
-                Flexible(
+                files.isNotEmpty ? Flexible(
                 child: GridView.builder(
                 shrinkWrap: true,
                 gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -239,22 +259,27 @@ class _SourceViewState extends State<SourceView> {
                     fileSize: file.fileSize,
                     fileExtension: file.fileExtension,
                     download: (){},
-                    delete: (){
-                      setState(() async{
-                        String result = await viewModel.removeFile("${file.fileName}.${file.fileExtension}");
+                    delete: () async{
+                      agentID = int.parse(selectedAgent!.split(":")[0]);
+                       String result = await viewModel.removeFile("${file.fileName}.${file.fileExtension}", agentID);
                         if (result != 'success'){
                         showErrorSnackBar(context, result);
                         }
                         else{
+                          
+                          files = await viewModel.getFiles(agentID);
                         showSuccessSnackBar(context, 'File deleted');
                         }
+                      setState((){
+                       
                       });
                       
                         },
                     );
                   },
                 ),
-              )
+              ):
+              const SizedBox.shrink(),
               ] ,
             ),
             Container(
@@ -267,7 +292,7 @@ class _SourceViewState extends State<SourceView> {
                 fontWeight: FontWeight.normal
                 ),),
             ),
-            const MyUrlList(),
+            MyUrlList(agentID: agentID,),
             Container(
               padding: const EdgeInsets.all(10),
               child: const Text('Text',
