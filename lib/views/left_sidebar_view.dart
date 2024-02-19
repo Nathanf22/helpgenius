@@ -1,6 +1,7 @@
 // lib/views/left_sidebar.dart
 
 import 'package:helpgenius/model/data.dart';
+import 'package:helpgenius/model/global_params.dart';
 import 'package:helpgenius/views/agent_view.dart';
 import 'package:helpgenius/views/components/custom_button1.dart';
 import 'package:helpgenius/views/components/custom_button2.dart';
@@ -154,7 +155,9 @@ class _LeftSidebarViewState extends State<LeftSidebarView> {
                  const SizedBox(height: 10,),
                  CustomButton2(text: 'Disconnect', 
                  onPressed: (){
-
+                  authenticated = false;
+                  email = '';
+                  widget.refreshParent();
                  }),
                  const SizedBox(height: 10,)
               ],
