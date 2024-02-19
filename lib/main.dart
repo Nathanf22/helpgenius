@@ -1,4 +1,6 @@
 import 'package:helpgenius/model/data.dart';
+import 'package:helpgenius/model/global_params.dart';
+import 'package:helpgenius/views/email_auth_view.dart';
 import 'package:helpgenius/views/home_view.dart';
 import 'package:helpgenius/views/left_sidebar_view.dart';
 import 'package:flutter/material.dart';
@@ -77,7 +79,7 @@ class _MyHomePageState extends State<MyHomePage> {
       //   // the App.build method, and use it to set our appbar title.
       //   title: Text(widget.title),
       // ),
-      body: Row(
+      body: authenticated ? Row(
           children: [
             // Le left_sidebar
             LeftSidebarView(refreshParent: refresh,),
@@ -86,7 +88,8 @@ class _MyHomePageState extends State<MyHomePage> {
               child: HomeView(widget: widgetToDisplay,)),
             
           ],
-        ),
+        ):
+         EmailAuthVerificationView(refreshParent: refresh,),
       // floatingActionButton: FloatingActionButton(
       //   onPressed: _incrementCounter,
       //   tooltip: 'Increment',

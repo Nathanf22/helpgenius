@@ -1,8 +1,9 @@
+import 'package:helpgenius/model/global_params.dart';
 import 'package:helpgenius/model/message_model.dart';
 import 'package:helpgenius/viewsModel/agent_view_model.dart';
 
 class TestViewModel{
-  String userID = "sikatinathan@gmail.com"; 
+  String userID = email; 
   Future<ChatMessage> sendMessage(int agentID, String message) async{
     return await MessageModel().sendMessage(agentID, userID, message);
   }

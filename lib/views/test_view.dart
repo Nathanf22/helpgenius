@@ -92,6 +92,13 @@ class _TestPageState extends State<TestPage> {
         
       });
     });
+
+    viewModel.getHistory(agentID).then((history) {
+        chatMessages = history;
+        setState(() {
+          
+        });
+      });
     super.initState();
     // Appelez une fonction asynchrone pour charger les données
     // files = loadFilesData();
